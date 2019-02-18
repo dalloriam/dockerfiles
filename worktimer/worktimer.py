@@ -11,11 +11,15 @@ import subprocess
 import tqdm
 
 ORC_PORT = os.getenv('ORC_PORT', '8080')
+OS_TYPE = os.getenv('HOST_OS', 'linux-gnu')
+
+# Workaround since --net=host is not supported on mac
+ORC_HOST = 'docker.for.mac.host.internal' if OS_TYPE.startswith('darwin') else 'localhost'
 
 
 def send_message(title: str, message: str) -> None:
     # TODO: Enable only if ORC supports notifications on this machine.
-    resp = requests.post(f'http://localhost:{ORC_PORT}/local/notify', json={'title': title, 'message': message})
+    resp = requests.post(f'http://{ORC_HOST}:{ORC_PORT}/local/notify', json={'title': title, 'message': message})
 
     if resp.status_code != HTTPStatus.OK:
         raise ValueError(resp.text)
@@ -24,7 +28,8 @@ def send_message(title: str, message: str) -> None:
 class WorkTimer:
 
     def __init__(self):
-        self._client = DatahoseClient()
+        # self._client = DatahoseClient()
+        pass
 
     def run(self, title: str, minutes: int) -> None:
         send_message("Work Timer", title)
